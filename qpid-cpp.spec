@@ -75,9 +75,9 @@
 # tag is needed for dependency checks of core packages from non-core packages.
 # Non-RHEL-6: {core_release} is set to same value as {release} below.
 %if %{fedora} || %{rhel_5}
-%global core_release        %{release_num}%{?dist}
+%global core_release        %{release_num}%{?dist}.goose.1
 %else
-%global core_release        %{release_num}.el6
+%global core_release        %{release_num}.gl6.goose.1
 %endif
 
 # This overrides the package name - do not change this! It keeps all package
@@ -87,7 +87,7 @@
 
 Name:           qpid-cpp
 Version:        %{qpid_release}.%{qpid_svnrev}
-Release:        %{release_num}%{?dist}
+Release:        %{release_num}%{?dist}.goose.1
 Summary:        Libraries for Qpid C++ client applications
 Group:          System Environment/Libraries
 License:        ASL 2.0
@@ -913,6 +913,9 @@ rm -rf %{buildroot}
 /sbin/ldconfig
 
 %changelog
+* Mon Jan  2 2012 Clint Savage <herlo@gooseproject.org> - 0.7.946106-5.goose.1
+- Adjusted dependency on el6
+
 * Wed Jul 14 2010 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-5
 - Related: rhbz#609298 - ruby QMF bindings can't query agents
   Fix in undelying c++ code for ruby QMF bindings.
