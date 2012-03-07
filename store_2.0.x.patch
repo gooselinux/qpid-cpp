@@ -1,0 +1,89 @@
+Index: tools/resize
+===================================================================
+--- tools/resize	(revision 4449)
++++ tools/resize	(working copy)
+@@ -22,7 +22,7 @@
+ The GNU Lesser General Public License is available in the file COPYING.
+ """
+ 
+-import jerr, jrnl, janal
++from qpidstore import jerr, jrnl, janal
+ import glob, optparse, os, sys, time
+ 
+ 
+Index: tools/store_chk
+===================================================================
+--- tools/store_chk	(revision 4449)
++++ tools/store_chk	(working copy)
+@@ -22,7 +22,7 @@
+ The GNU Lesser General Public License is available in the file COPYING.
+ """
+ 
+-import jerr, jrnl, janal
++from qpidstore import jerr, jrnl, janal
+ import optparse, os, sys
+ 
+ 
+Index: tools/__init__.py
+===================================================================
+--- tools/__init__.py	(revision 0)
++++ tools/__init__.py	(revision 0)
+@@ -0,0 +1,23 @@
++"""
++Copyright (c) 2007, 2008 Red Hat, Inc.
++
++This file is part of the Qpid async store library msgstore.so.
++
++This library is free software; you can redistribute it and/or
++modify it under the terms of the GNU Lesser General Public
++License as published by the Free Software Foundation; either
++version 2.1 of the License, or (at your option) any later version.
++
++This library is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++Lesser General Public License for more details.
++
++You should have received a copy of the GNU Lesser General Public
++License along with this library; if not, write to the Free Software
++Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
++USA
++
++The GNU Lesser General Public License is available in the file COPYING.
++"""
++
+Index: tools/Makefile.am
+===================================================================
+--- tools/Makefile.am	(revision 4449)
++++ tools/Makefile.am	(working copy)
+@@ -20,12 +20,7 @@
+ # The GNU Lesser General Public License is available in the file COPYING.
+ 
+ qpidexecdir = $(libexecdir)/qpid
+-qpidexec_SCRIPTS = jerr.py jrnl.py janal.py resize store_chk
++qpidexec_SCRIPTS = resize store_chk
+ 
+-EXTRA_DIST = \
+-    jerr.py \
+-    jrnl.py \
+-    janal.py \
+-    resize \
+-    store_chk
+-	
+\ No newline at end of file
++pkgpyexec_qpiddir = $(pyexecdir)/qpidstore
++pkgpyexec_qpid_PYTHON = __init__.py jerr.py jrnl.py janal.py
+Index: configure.ac
+===================================================================
+--- configure.ac	(revision 4449)
++++ configure.ac	(working copy)
+@@ -215,6 +215,9 @@
+ AM_CONDITIONAL([DOXYGEN], [test x$do_doxygen = xyes])
+ AM_CONDITIONAL([DO_CLUSTER_TESTS], [test $enable_CLUSTER_TESTS = yes])
+ 
++# Check for Python libraries for the Journal Tools
++AM_PATH_PYTHON()
++
+ AC_CONFIG_FILES([
+   Makefile
+   docs/Makefile

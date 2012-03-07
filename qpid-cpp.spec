@@ -1,103 +1,82 @@
 #
-# Spec file for Qpid C++ packages: qpid-cpp-server*, qpid-cpp-client* and qmf
+# Spec file for Qpid C++ packages: qpid-cpp-server*, qpid-cpp-client*
 # svn revision: $Rev$
 #
 
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 %{!?ruby_sitelib: %global ruby_sitelib %(/usr/bin/ruby -rrbconfig  -e 'puts Config::CONFIG["sitelibdir"] ')}
 %{!?ruby_sitearch: %global ruby_sitearch %(/usr/bin/ruby -rrbconfig -e 'puts Config::CONFIG["sitearchdir"] ')}
 
 # ===========
-# The following section controls which rpms are produced for which builds.
-# * To set the following flags, assign the value 1 for true; 0 for false.
-# * These rpms produced by these two flags are mutually exclusive - ie they
-#   won't duplicate any of the rpms.
-# RHEL-6:
-# The build process has been updated so that only one build is necessary for both
-# RHEL-6 (core) components and the MRG channel components. Set both flags to true (1).
-# This set of flags will be removed in due course.
-# All other OSs (RHEL4/5/Fedora):
-# * The MRG product is entirely external to the OS.
-# * Set both MRG_core and MRG_non_core to true.
-%global MRG_core            1
-%global MRG_non_core        1
 
 # Release numbers
-%global qpid_release        0.7
-%global qpid_svnrev         946106
-%global store_svnrev        3975
-# Change this release number for each build of the same qpid_svnrev, otherwise set back to 1.
-%global release_num         5
+%global qpid_release        0.10
+%global store_svnrev        4446
+%global release_num         6
 
 # NOTE: no more than one of these flags should be set at the same time!
-# RHEL-6 builds (the default) should have all these flags set to 0.
+# RHEL-6 builds (the default) should have both these flags set to 0.
 %global fedora              0
 %global rhel_5              0
 
 # LIBRARY VERSIONS
-%global QPIDCOMMON_VERSION_INFO             3:0:0
-%global QPIDTYPES_VERSION_INFO              1:0:0
-%global QPIDBROKER_VERSION_INFO             3:0:0
-%global QPIDCLIENT_VERSION_INFO             3:0:0
-%global QPIDMESSAGING_VERSION_INFO          3:0:0
-%global QMF_VERSION_INFO                    2:0:0
-%global QMFENGINE_VERSION_INFO              2:0:0
-%global QMFCONSOLE_VERSION_INFO             3:0:0
-%global RDMAWRAP_VERSION_INFO               3:0:0
-%global SSLCOMMON_VERSION_INFO              3:0:0
+# Update these lib numbers in accordance with library numbering policy and best practices.
+# http://www.gnu.org/software/libtool/manual/libtool.html#Versioning
+#
+# Fromat: current[:revision[:age]]
+#
+# current:  The most recent interface number that this library implements.
+# revision: The implementation number of the current interface.
+# age:      The difference between the newest and oldest interfaces that this library implements.
+#           In other words, the library implements all the interface numbers in the range from
+#           number current - age to current. 
+#
+#  1. Start with version information of ‘0:0:0’ for each libtool library.
+#  2. Update the version information only immediately before a public release of your software.
+#     More frequent updates are unnecessary, and only guarantee that the current interface number
+#     gets larger faster.
+#  3. If the library source code has changed at all since the last update, then increment revision
+#     (‘c:r:a’ becomes ‘c:r+1:a’).
+#  4. If any interfaces have been added, removed, or changed since the last update, increment current,
+#     and set revision to 0.
+#  5. If any interfaces have been added since the last public release, then increment age.
+#  6. If any interfaces have been removed or changed since the last public release, then set age to 0. 
 
-# Single var with all lib version params (except store) for make
-%global LIB_VERSION_MAKE_PARAMS QPIDCOMMON_VERSION_INFO=%{QPIDCOMMON_VERSION_INFO} QPIDTYPES_VERSION_INFO=%{QPIDTYPES_VERSION_INFO} QPIDBROKER_VERSION_INFO=%{QPIDBROKER_VERSION_INFO} QPIDCLIENT_VERSION_INFO=%{QPIDCLIENT_VERSION_INFO} QPIDMESSAGING_VERSION_INFO=%{QPIDMESSAGING_VERSION_INFO} QMF_VERSION_INFO=%{QMF_VERSION_INFO} QMFENGINE_VERSION_INFO=%{QMFENGINE_VERSION_INFO} QMFCONSOLE_VERSION_INFO=%{QMFCONSOLE_VERSION_INFO} RDMAWRAP_VERSION_INFO=%{RDMAWRAP_VERSION_INFO} SSLCOMMON_VERSION_INFO=%{SSLCOMMON_VERSION_INFO}
+%global QPIDCOMMON_VERSION_INFO             5:0:0
+%global QPIDTYPES_VERSION_INFO              3:0:2
+%global QPIDBROKER_VERSION_INFO             5:0:0
+%global QPIDCLIENT_VERSION_INFO             5:0:0
+%global QPIDMESSAGING_VERSION_INFO          4:0:1
+%global RDMAWRAP_VERSION_INFO               5:0:0
+%global SSLCOMMON_VERSION_INFO              5:0:0
 
 # ===========
 
-# Note: if the mix is changed between MRG_core and MRG_non_core, then
-# the files that will be removed at the end of the install section will
-# need to be adjusted (moved from one section to the other).
-%global client              %{MRG_core}
-%global server              %{MRG_core}
-%global qmf                 %{MRG_core}
-%global ruby_qmf            %{MRG_core}
-%global client_devel        %{MRG_non_core}
-%global client_devel_docs   %{MRG_non_core}
-%global server_devel        %{MRG_non_core}
-%global qmf_devel           %{MRG_non_core}
-%global client_rdma         %{MRG_non_core}
-%global server_rdma         %{MRG_non_core}
-%global client_ssl          %{MRG_non_core}
-%global server_ssl          %{MRG_non_core}
-%global server_xml          %{MRG_non_core}
-%global server_cluster      %{MRG_non_core}
-%global server_store        %{MRG_non_core}
-%global rh_tests            %{MRG_non_core}
-
-# RHEL-6: Because core packages are .el6 and non-core .el6mrg, the {core_release}
-# tag is needed for dependency checks of core packages from non-core packages.
-# Non-RHEL-6: {core_release} is set to same value as {release} below.
-%if %{fedora} || %{rhel_5}
-%global core_release        %{release_num}%{?dist}.goose.1
-%else
-%global core_release        %{release_num}.gl6.goose.1
-%endif
+# Single var with all lib version params (except store) for make
+%global LIB_VERSION_MAKE_PARAMS QPIDCOMMON_VERSION_INFO=%{QPIDCOMMON_VERSION_INFO} QPIDTYPES_VERSION_INFO=%{QPIDTYPES_VERSION_INFO} QPIDBROKER_VERSION_INFO=%{QPIDBROKER_VERSION_INFO} QPIDCLIENT_VERSION_INFO=%{QPIDCLIENT_VERSION_INFO} QPIDMESSAGING_VERSION_INFO=%{QPIDMESSAGING_VERSION_INFO} RDMAWRAP_VERSION_INFO=%{RDMAWRAP_VERSION_INFO} SSLCOMMON_VERSION_INFO=%{SSLCOMMON_VERSION_INFO}
 
 # This overrides the package name - do not change this! It keeps all package
 # names consistent, irrespective of the {name} varialbe - which changes for
 # core and non-core builds.
 %global pkg_name qpid-cpp
 
+# ===========
+
 Name:           qpid-cpp
-Version:        %{qpid_release}.%{qpid_svnrev}
-Release:        %{release_num}%{?dist}.goose.1
+Version:        %{qpid_release}
+Release:        %{release_num}%{?dist}
 Summary:        Libraries for Qpid C++ client applications
 Group:          System Environment/Libraries
 License:        ASL 2.0
 URL:            http://qpid.apache.org
 Source0:        %{name}-%{version}.tar.gz
-Source1:        store-%{qpid_release}.%{store_svnrev}.tar.gz
-Patch0:         mrg_1.3.x.patch
-Patch1:         store_1.3.x.patch
+Source1:        store-%{qpid_release}.tar.gz
+Source2:        cpp_doxygen_html.tar.gz
+Patch0:         mrg_2.0.x.patch
+Patch1:         store_2.0.x.patch
 %if %{fedora}
-Patch2:         so_number.patch
+Patch3:         so_number.patch
 %endif
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if %{rhel_5}
@@ -108,11 +87,11 @@ ExclusiveArch:  i686 x86_64
 Vendor:         Red Hat, Inc.
 
 BuildRequires: boost-devel
-BuildRequires: doxygen
 BuildRequires: libtool
 BuildRequires: pkgconfig
 BuildRequires: ruby
 BuildRequires: ruby-devel
+BuildRequires: python
 BuildRequires: python-devel
 BuildRequires: swig
 BuildRequires: cyrus-sasl-devel
@@ -126,7 +105,6 @@ BuildRequires: boost-filesystem
 BuildRequires: libuuid-devel
 %endif
 
-%if %{MRG_non_core}
 BuildRequires: libibverbs-devel
 BuildRequires: librdmacm-devel
 BuildRequires: nss-devel
@@ -139,10 +117,9 @@ BuildRequires: libaio-devel
 BuildRequires: openais-devel
 BuildRequires: cman-devel
 %else
-BuildRequires: corosynclib-devel >= 1.0.0-1
-BuildRequires: clusterlib-devel >= 3.0.0-20
+BuildRequires: corosynclib-devel
+BuildRequires: clusterlib-devel
 %endif
-%endif # MRG_non_core
 
 
 %description
@@ -152,8 +129,6 @@ C++. Clients exchange messages with an AMQP message broker using
 the AMQP protocol.
 
 # === Package: qpid-cpp-client ===
-
-%if %{client}
 
 %package -n %{pkg_name}-client
 Summary: Libraries for Qpid C++ client applications
@@ -173,7 +148,12 @@ the AMQP protocol.
 
 %files -n %{pkg_name}-client
 %defattr(-,root,root,-)
-%doc cpp/LICENSE cpp/NOTICE cpp/README cpp/INSTALL cpp/RELEASE_NOTES cpp/DESIGN
+%doc cpp/LICENSE
+%doc cpp/NOTICE
+%doc cpp/README.txt
+%doc cpp/INSTALL
+%doc cpp/RELEASE_NOTES
+%doc cpp/DESIGN
 %_libdir/libqpidcommon.so.*
 %_libdir/libqpidclient.so.*
 %_libdir/libqpidmessaging.so.*
@@ -189,16 +169,12 @@ the AMQP protocol.
 %postun -n %{pkg_name}-client
 /sbin/ldconfig
 
-%endif # client
-
 # === Package: qpid-cpp-client-devel ===
-
-%if %{client_devel}
 
 %package -n %{pkg_name}-client-devel
 Summary: Header files, documentation and testing tools for developing Qpid C++ clients
 Group: Development/System
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-client = %{version}-%{release_num}%{?dist}
 Requires: boost-devel
 Requires: %_includedir/uuid/uuid.h
 %if ! %{rhel_5}
@@ -219,18 +195,17 @@ in C++ using Qpid.  Qpid implements the AMQP messaging specification.
 %_includedir/qpid/*.h
 %_includedir/qpid/amqp_0_10
 %_includedir/qpid/client
-%_includedir/qpid/console
 %_includedir/qpid/framing
 %_includedir/qpid/sys
 %_includedir/qpid/log
 %_includedir/qpid/management
 %_includedir/qpid/messaging
-%_includedir/qpid/agent
 %_includedir/qpid/types
 %_libdir/libqpidcommon.so
 %_libdir/libqpidclient.so
 %_libdir/libqpidmessaging.so
 %_libdir/libqpidtypes.so
+%_libdir/pkgconfig/qpid.pc
 %_datadir/qpidc/examples/messaging
 %defattr(755,root,root,-)
 %_bindir/qpid-perftest
@@ -246,11 +221,7 @@ in C++ using Qpid.  Qpid implements the AMQP messaging specification.
 %postun -n %{pkg_name}-client-devel
 /sbin/ldconfig
 
-%endif # client_devel
-
 # === Package: qpid-cpp-client-devel-docs ===
-
-%if %{client_devel_docs}
 
 %package -n %{pkg_name}-client-devel-docs
 Summary: AMQP client development documentation
@@ -266,13 +237,9 @@ format for easy browsing.
 
 %files -n %{pkg_name}-client-devel-docs
 %defattr(-,root,root,-)
-%doc cpp/docs/api/html
-
-%endif # client_devel_docs
+%doc html
 
 # === Package: qpid-cpp-server ===
-
-%if %{server}
 
 %package -n %{pkg_name}-server
 Summary: An AMQP message broker daemon
@@ -326,17 +293,13 @@ if [ "$1" -ge "1" ]; then
 fi
 /sbin/ldconfig
 
-%endif # server
-
 # === Package: qpid-cpp-server-devel ===
-
-%if %{server_devel}
 
 %package -n %{pkg_name}-server-devel
 Summary: Libraries and header files for developing Qpid broker extensions
 Group: Development/System
 Requires: %{pkg_name}-client-devel = %{version}-%{release}
-Requires: %{pkg_name}-server = %{version}-%{core_release}
+Requires: %{pkg_name}-server = %{version}-%{release_num}%{?dist}
 Requires: boost-devel
 %if !%{rhel_5}
 Requires: boost-filesystem
@@ -359,99 +322,12 @@ Qpid broker daemon.
 %postun -n %{pkg_name}-server-devel
 /sbin/ldconfig
 
-%endif # server_devel
-
-# === Package: qmf ===
-
-%if %{qmf}
-
-%package -n qmf
-Summary: The QPID Management Framework
-Group: System Environment/Libraries
-Requires: %{pkg_name}-client = %{version}-%{release}
-
-%description -n qmf
-An extensible managememt framework layered on QPID messaging.
-
-%files -n qmf
-%defattr(-,root,root,-)
-%_libdir/libqmf.so.*
-%_libdir/libqmfengine.so.*
-%_libdir/libqmfconsole.so.*
-
-%post -n qmf
-/sbin/ldconfig
-
-%postun -n qmf
-/sbin/ldconfig
-
-%endif # qmf
-
-# === Package: qmf-devel ===
-
-%if %{qmf_devel}
-
-%package -n qmf-devel
-Summary: Header files and tools for developing QMF extensions
-Group: Development/System
-Requires: qmf = %{version}-%{core_release}
-Requires: %{pkg_name}-client-devel = %{version}-%{release}
-
-%description -n qmf-devel
-Header files and code-generation tools needed for developers of QMF-managed
-components.
-
-%files -n qmf-devel
-%defattr(-,root,root,-)
-%_libdir/libqmf.so
-%_libdir/libqmfengine.so
-%_libdir/libqmfconsole.so
-%_bindir/qmf-gen
-%{python_sitelib}/qmfgen
-
-%post -n qmf-devel
-/sbin/ldconfig
-
-%postun -n qmf-devel
-/sbin/ldconfig
-
-%endif # qmf_devel
-
-# === Package: ruby-qmf ===
-
-%if %{ruby_qmf}
-
-%package -n ruby-qmf
-Summary: The QPID Management Framework bindings for ruby
-Group: System Environment/Libraries
-Requires: %{pkg_name}-client = %{version}-%{release}
-Requires: qmf = %{version}-%{release}
-
-%description -n ruby-qmf
-An extensible managememt framework layered on QPID messaging, bindings
-for ruby.
-
-%files -n ruby-qmf
-%defattr(-,root,root,-)
-%{ruby_sitelib}/qmf.rb
-%{ruby_sitearch}/qmfengine.so
-
-%post -n ruby-qmf
-/sbin/ldconfig
-
-%postun -n ruby-qmf
-/sbin/ldconfig
-
-%endif # ruby_qmf
-
 # === Package: qpid-cpp-client-rdma ===
-
-%if %{client_rdma}
 
 %package -n %{pkg_name}-client-rdma
 Summary: RDMA Protocol support (including Infiniband) for Qpid clients
 Group: System Environment/Libraries
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-client = %{version}-%{release_num}%{?dist}
 Obsoletes: qpidc-rdma
 
 %description -n %{pkg_name}-client-rdma
@@ -470,17 +346,12 @@ Infiniband) as the transport for Qpid messaging.
 %postun -n %{pkg_name}-client-rdma
 /sbin/ldconfig
 
-%endif # client_rdma
-
 # === Package: qpid-cpp-server-rdma ===
-
-%if %{server_rdma}
 
 %package -n %{pkg_name}-server-rdma
 Summary: RDMA Protocol support (including Infiniband) for the Qpid daemon
 Group: System Environment/Libraries
-Requires: %{pkg_name}-server = %{version}-%{core_release}
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-server = %{version}-%{release_num}%{?dist}
 Requires: %{pkg_name}-client-rdma = %{version}-%{release}
 Obsoletes: qpidd-rdma
 
@@ -498,16 +369,12 @@ transport for AMQP messaging.
 %postun -n %{pkg_name}-server-rdma
 /sbin/ldconfig
 
-%endif # server_rdma
-
 # === Package: qpid-cpp-client-ssl ===
-
-%if %{client_ssl}
 
 %package -n %{pkg_name}-client-ssl
 Summary: SSL support for Qpid clients
 Group: System Environment/Libraries
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-client = %{version}-%{release_num}%{?dist}
 Obsoletes: qpidc-ssl
 
 %description -n %{pkg_name}-client-ssl
@@ -525,17 +392,12 @@ for Qpid messaging.
 %postun -n %{pkg_name}-client-ssl
 /sbin/ldconfig
 
-%endif # client_ssl
-
 # === Package: qpid-cpp-server-ssl ===
-
-%if %{server_ssl}
 
 %package -n %{pkg_name}-server-ssl
 Summary: SSL support for the Qpid daemon
 Group: System Environment/Libraries
-Requires: %{pkg_name}-server = %{version}-%{core_release}
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-server = %{version}-%{release_num}%{?dist}
 Requires: %{pkg_name}-client-ssl = %{version}-%{release}
 Obsoletes: qpidd-ssl
 
@@ -553,17 +415,13 @@ messaging.
 %postun -n %{pkg_name}-server-ssl
 /sbin/ldconfig
 
-%endif # server_ssl
-
 # === Package: qpid-cpp-server-xml ===
-
-%if %{server_xml}
 
 %package -n %{pkg_name}-server-xml
 Summary: XML extensions for the Qpid daemon
 Group: System Environment/Libraries
-Requires: %{pkg_name}-server = %{version}-%{core_release}
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-server = %{version}-%{release_num}%{?dist}
+Requires: %{pkg_name}-client = %{version}-%{release_num}%{?dist}
 Requires: xqilla
 Requires: xerces-c
 Obsoletes: qpidd-xml
@@ -582,23 +440,19 @@ messages.
 %postun -n %{pkg_name}-server-xml
 /sbin/ldconfig
 
-%endif # server_xml
-
 # === Package: qpid-cpp-server-cluster ===
-
-%if %{server_cluster}
 
 %package -n %{pkg_name}-server-cluster
 Summary: Cluster support for the Qpid daemon
 Group: System Environment/Daemons
-Requires: %{pkg_name}-server = %{version}-%{core_release}
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-server = %{version}-%{release_num}%{?dist}
+Requires: %{pkg_name}-client = %{version}-%{release_num}%{?dist}
 %if %{rhel_5}
 Requires: openais
 Requires: cman
 %else
-Requires: corosync >= 1.0.0-1
-Requires: clusterlib >= 3.0.0-20
+Requires: corosync
+Requires: clusterlib
 %endif
 Obsoletes: qpidd-cluster
 
@@ -634,18 +488,14 @@ EOF
 %postun -n %{pkg_name}-server-cluster
 /sbin/ldconfig
 
-%endif # server_cluster
-
 # === Package: qpid-cpp-server-store ===
-
-%if %{server_store}
 
 %package -n %{pkg_name}-server-store
 Summary: Red Hat persistence extension to the Qpid messaging system
 Group: System Environment/Libraries
 License: LGPL 2.1+
-Requires: %{pkg_name}-server = %{version}-%{core_release}
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-server = %{version}-%{release_num}%{?dist}
+Requires: %{pkg_name}-client = %{version}-%{release_num}%{?dist}
 Requires: db4
 Requires: libaio
 Obsoletes: rhm
@@ -657,11 +507,12 @@ r.%{store_svnrev}.)
 
 %files -n %{pkg_name}-server-store
 %defattr(-,root,root,-)
-%doc ../store-%{qpid_release}.%{store_svnrev}/README 
+%doc ../store-%{qpid_release}/README 
 %_libdir/qpid/daemon/msgstore.so*
-%_libexecdir/qpid/jerr.py*
-%_libexecdir/qpid/jrnl.py*
-%_libexecdir/qpid/janal.py*
+%{python_sitearch}/qpidstore/__init__.py*
+%{python_sitearch}/qpidstore/jerr.py*
+%{python_sitearch}/qpidstore/jrnl.py*
+%{python_sitearch}/qpidstore/janal.py*
 %_libexecdir/qpid/resize
 %_libexecdir/qpid/store_chk
 %attr(0775,qpidd,qpidd) %dir %_localstatedir/rhm
@@ -672,17 +523,13 @@ r.%{store_svnrev}.)
 %postun -n %{pkg_name}-server-store
 /sbin/ldconfig
 
-%endif # server_store
-
 # === Package: rh-qpid-cpp-tests (internal package, not distributed) ===
-
-%if %{rh_tests} && ! %{fedora}
 
 %package -n rh-%{pkg_name}-tests
 Summary: Internal Red Hat test utilities
 Group: System Environment/Tools
-Requires: %{pkg_name}-server = %{version}-%{core_release}
-Requires: %{pkg_name}-client = %{version}-%{core_release}
+Requires: %{pkg_name}-server = %{version}-%{release_num}%{?dist}
+Requires: %{pkg_name}-client = %{version}-%{release_num}%{?dist}
 Obsoletes: rh-qpidc-tests
 
 %description -n rh-%{pkg_name}-tests
@@ -697,17 +544,15 @@ to receive at all.
 /opt/rh-qpid/clients/declare_queues
 /opt/rh-qpid/clients/replaying_sender
 /opt/rh-qpid/clients/resuming_receiver
-
-%endif # rh_tests
+/opt/rh-qpid/clients/receiver
+/opt/rh-qpid/clients/sender
+/opt/rh-qpid/clients/qpid-receive
+/opt/rh-qpid/clients/qpid-send
 
 # ===
 
 %prep
 # Sanity checks on flag settings
-%if ! %{MRG_core} && ! %{MRG_non_core}
-echo "ERROR: Neither {MRG_core} nor {MRG_non_core} is set true (1)."
-exit 1
-%endif
 %if %{fedora} && %{rhel_5}
 echo "ERROR: Both {fedora} and {rhel_5} are true (1) at the same time."
 exit 1
@@ -719,25 +564,29 @@ exit 1
 # Qpid patch
 %patch0 -p2
 # Store patch
-pushd ../store-%{qpid_release}.%{store_svnrev}
-%patch1 -p1
+pushd ../store-%{qpid_release}
+%patch1
 popd
 
 %if %{fedora}
-%patch2
+%patch3
 %endif
+# Doxygen docs
+tar -xzf %{SOURCE2} --no-same-owner
+
 %global perftests "qpid-perftest qpid-topic-listener qpid-topic-publisher qpid-latency-test qpid-client-test qpid-txtest"
 %global rh_qpid_cpp_tests_failover "failover_soak run_failover_soak"
-%global rh_qpid_cpp_tests_clients "replaying_sender resuming_receiver declare_queues"
+%global rh_qpid_cpp_tests_clients "replaying_sender resuming_receiver declare_queues sender receiver qpid-send qpid-receive"
+
+# ===
 
 %build
 pushd cpp
 ./bootstrap
-CXXFLAGS="%{optflags} -DNDEBUG -O3" \
+CXXFLAGS="%{optflags} -DNDEBUG -O3"
 
-%if %{MRG_non_core}
-# [MRG_non_core] - Build everything with all options
-%configure --disable-static --disable-rpath --with-swig --with-sasl --with-cpg --with-xml --with-rdma --with-ssl --without-graphviz --without-help2man
+# Build everything with all options
+%configure --disable-static --with-swig --with-sasl --with-cpg --with-xml --with-rdma --with-ssl --without-help2man
 make %{LIB_VERSION_MAKE_PARAMS}
 
 # Make perftest utilities
@@ -748,27 +597,27 @@ done
 %if !%{fedora}
 # Make rh-qpid-cpp-test programs (RH internal)
 for rhtest in %{rh_qpid_cpp_tests_failover} %{rh_qpid_cpp_tests_clients}; do
-        make $rhtest
+    make $rhtest
 done
+# Patch run_failover_soak to make it work outside source tree
+mv -f run_failover_soak run_failover_soak.orig
+cat run_failover_soak.orig | sed -e "s#^src_root=..#src_root=/usr/sbin#" \
+                                 -e "s#\$src_root/\.libs#%{_libdir}/qpid/daemon#" \
+                                 -e "s#\`dirname \$0\`#../failover#" \
+                                 -e "s#^exec #cd /opt/rh-qpid/clients; exec #" > run_failover_soak
 %endif
 popd
 popd
 
 # Store
-pushd ../store-%{qpid_release}.%{store_svnrev}
+pushd ../store-%{qpid_release}
 export CXXFLAGS="%{optflags} -DNDEBUG -O3" 
 ./bootstrap
-%configure --disable-static --disable-rpath --disable-dependency-tracking --with-qpid-checkout=%{_builddir}/%{name}-%{version}
+%configure --disable-static --disable-dependency-tracking --with-qpid-checkout=%{_builddir}/%{name}-%{version}
 make
-
-
-%else # MRG_non_core
-# [MRG_core] - Build without options
-%configure --disable-static --disable-rpath --with-swig --with-sasl --without-cpg --without-xml --without-rdma --without-ssl --without-graphviz --without-help2man
-make %{LIB_VERSION_MAKE_PARAMS}
-
-%endif # MRG_non_core
 popd
+
+# ===
 
 %install
 rm -rf %{buildroot}
@@ -780,7 +629,6 @@ install -d -m0755 %{buildroot}%{_localstatedir}/lib/qpidd
 install -d -m0755 %{buildroot}%_libdir/qpidd
 install -d -m0755 %{buildroot}/var/run/qpidd
 
-%if %{MRG_non_core}
 # Install perftest utilities
 pushd src/tests/
 for ptest in %{perftests}; do
@@ -791,19 +639,19 @@ done
 mkdir -p -m 0755 %{buildroot}/opt/rh-qpid/failover
 mkdir -p -m 0755 %{buildroot}/opt/rh-qpid/clients
 for rhtest in %{rh_qpid_cpp_tests_failover} ; do
-        libtool --mode=install install -m 755 $rhtest %{buildroot}/opt/rh-qpid/failover/
+    libtool --mode=install install -m 755 $rhtest %{buildroot}/opt/rh-qpid/failover/
 done
 for rhtest in %{rh_qpid_cpp_tests_clients} ; do
-        libtool --mode=install install -m 755 $rhtest %{buildroot}/opt/rh-qpid/clients/
+    libtool --mode=install install -m 755 $rhtest %{buildroot}/opt/rh-qpid/clients/
 done
 %endif # !fedora
 popd
-pushd docs/api
-make html
-popd
+
+# enable auth by default
+echo "auth=yes" >> %{buildroot}/etc/qpidd.conf
 
 #Store
-pushd %{_builddir}/store-%{qpid_release}.%{store_svnrev}
+pushd %{_builddir}/store-%{qpid_release}
 make install DESTDIR=%{buildroot}
 install -d -m0775 %{buildroot}%{_localstatedir}/rhm
 install -d -m0755 %{buildroot}%_libdir/qpid/daemon
@@ -813,7 +661,6 @@ rm -f %{buildroot}%_libdir/*.a
 rm -f %{buildroot}%_libdir/*.la
 rm -f %{buildroot}%_sysconfdir/rhmd.conf
 popd
-%endif # MRG_non_core
 
 rm -f %{buildroot}%_libdir/*.a
 rm -f %{buildroot}%_libdir/*.l
@@ -826,69 +673,58 @@ rm -f %{buildroot}%_localstatedir/lib/qpidd/qpidd.sasldb
 
 # Remove all examples except the messaging dir
 # Remove this kludge when the makefile is fixed (ie does not install what is not wanted)!
-rm -rf %{buildroot}%_datadir/qpidc/examples/direct
-rm -rf %{buildroot}%_datadir/qpidc/examples/failover
-rm -rf %{buildroot}%_datadir/qpidc/examples/fanout
-rm -rf %{buildroot}%_datadir/qpidc/examples/pub-sub
+rm -rf %{buildroot}%_datadir/qpidc/examples/old_api
 rm -rf %{buildroot}%_datadir/qpidc/examples/qmf-console
-rm -rf %{buildroot}%_datadir/qpidc/examples/request-response
-rm -rf %{buildroot}%_datadir/qpidc/examples/tradedemo
-rm -rf %{buildroot}%_datadir/qpidc/examples/xml-exchange
 rm -f %{buildroot}%_datadir/qpidc/examples/Makefile
 rm -f %{buildroot}%_datadir/qpidc/examples/README.txt
 
+rm -f %{buildroot}%ruby_sitearch/cqmf2.*
+rm -f %{buildroot}%ruby_sitearch/cqpid.*
+rm -f %{buildroot}%ruby_sitelib/qmf2.rb
 
-# enable auth by default
-echo "auth=yes" >> %{buildroot}/etc/qpidd.conf
+rm -f %{buildroot}%python_sitearch/cqmf2.*
+rm -f %{buildroot}%python_sitearch/cqpid.*
+rm -f %{buildroot}%python_sitearch/qmf2.*
+rm -f %{buildroot}%python_sitearch/qmfengine.*
+rm -f %{buildroot}%python_sitearch/qmf.*
 
-install -pm 644 %{_builddir}/%{name}-%{version}/cpp/bindings/qmf/ruby/qmf.rb %{buildroot}%{ruby_sitelib}
-install -pm 755 %{_builddir}/%{name}-%{version}/cpp/bindings/qmf/ruby/.libs/qmfengine.so %{buildroot}%{ruby_sitearch}
+rm -f %{buildroot}%_libdir/libcqpid_perl.so
 
 rm -f  %{buildroot}%_libdir/_*
 rm -fr %{buildroot}%_libdir/qpid/tests
 rm -fr %{buildroot}%_libexecdir/qpid/tests
-rm -f  %{buildroot}%{ruby_sitearch}/qmfengine.la
-rm -fr %{buildroot}%_includedir/qmf
+rm -f  %{buildroot}%{ruby_sitearch}/*.la
 popd
 
-%if ! %{MRG_core}
-rm -f  %{buildroot}%_sysconfdir/qpidd.conf
-rm -f  %{buildroot}%_sysconfdir/rc.d/init.d/qpidd
-rm -f  %{buildroot}%_sysconfdir/sasl2/qpidd.conf
-rm -f  %{buildroot}%{ruby_sitelib}/qmf.rb
-rm -f  %{buildroot}%_libdir/libqmf.so.*
-rm -f  %{buildroot}%_libdir/libqmfconsole.so.*
-rm -f  %{buildroot}%_libdir/libqmfengine.so.*
-rm -f  %{buildroot}%_libdir/libqpidbroker.so.*
-rm -f  %{buildroot}%_libdir/libqpidclient.so.*
-rm -f  %{buildroot}%_libdir/libqpidcommon.so.*
-rm -f  %{buildroot}%_libdir/libqpidmessaging.so.*
-rm -f  %{buildroot}%_libdir/libqpidtypes.so.*
-rm -f  %{buildroot}%_libdir/qpid/daemon/acl.so
-rm -f  %{buildroot}%_libdir/qpid/daemon/replicating_listener.so
-rm -f  %{buildroot}%_libdir/qpid/daemon/replication_exchange.so
-rm -f  %{buildroot}%{ruby_sitearch}/qmfengine.so
-rm -f  %{buildroot}%_sbindir/qpidd
-rm -f  %{buildroot}%_datadir/man/man1/qpidd.1*
-%endif
-
-%if ! %{MRG_non_core}
-rm -rf %{buildroot}%_includedir/qpid
-rm -rf %{buildroot}%_datadir/qpidc/examples/messaging
+rm -rf %{buildroot}%_includedir/qmf
+rm -rf %{buildroot}%_includedir/qpid/agent
+rm -rf %{buildroot}%_includedir/qpid/console
+# NOTE: The following line fails on 64-bit as the artifacts are in
+# /usr/lib/python2.6/site-packages/ not /usr/lib64/python2.6/site-packages/
+# so we do the ugly thing and delete from both places until we can
+# work this out!
+# TODO: solve this problem
+rm -rf %{buildroot}%{python_sitearch}/qmfgen
 rm -rf %{buildroot}%{python_sitelib}/qmfgen
+# End TODO: solve this problem
 rm -f  %{buildroot}%_bindir/qmf-gen
 rm -f  %{buildroot}%_libdir/libqmf.so
+rm -f  %{buildroot}%_libdir/libqmf2.so
 rm -f  %{buildroot}%_libdir/libqmfconsole.so
 rm -f  %{buildroot}%_libdir/libqmfengine.so
-rm -f  %{buildroot}%_libdir/libqpidbroker.so
-rm -f  %{buildroot}%_libdir/libqpidclient.so
-rm -f  %{buildroot}%_libdir/libqpidcommon.so
-rm -f  %{buildroot}%_libdir/libqpidmessaging.so
-rm -f  %{buildroot}%_libdir/libqpidtypes.so
-%endif
+rm -f  %{buildroot}%_libdir/libqmf.so.*
+rm -f  %{buildroot}%_libdir/libqmf2.so.*
+rm -f  %{buildroot}%_libdir/libqmfconsole.so.*
+rm -f  %{buildroot}%_libdir/libqmfengine.so.*
+rm -f  %{buildroot}%{ruby_sitearch}/qmfengine.so
+rm -f  %{buildroot}%{ruby_sitelib}/qmf.rb
+
+# ===
 
 %clean
 rm -rf %{buildroot}
+
+# ===
 
 %check
 # All tests currently disabled, using 'make check' takes too long.
@@ -902,19 +738,121 @@ rm -rf %{buildroot}
 #popd
 
 # Store
-#pushd %{_builddir}/store-%{qpid_release}.%{store_svnrev}
+#pushd %{_builddir}/store-%{qpid_release}
 #make check
 #popd
+
+# ===
 
 %post
 /sbin/ldconfig
 
+# ===
+
 %postun
 /sbin/ldconfig
 
+# ===
+
 %changelog
-* Mon Jan  2 2012 Clint Savage <herlo@gooseproject.org> - 0.7.946106-5.goose.1
-- Adjusted dependency on el6
+* Tue Jun 7 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.10-6
+- Related rhbz#706120
+- MRG 2.0 GA build, equates to 0.10-8.el5 build
+- The mrg-2.0.x patch file was updated to include:
+  - BZ 707023: RPMdiff failure (multilib regressions) in qpid-qmf
+  - BZ 709343: Packaging problem in qpid-qmf-devel (qmf-gen templates)
+  - BZ 709862: dash-7 source RPM does not build
+  - BZ 671369: RDMA client can segfault when no SASL mechanism specified
+
+* Tue May 24 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.10-5
+- Related rhbz#706120
+  The patch file for the -4 build was not updated, this respin corrects
+  that mistake. The fixes described below for -4 should now correctly
+  apply to the -5 build.
+
+* Thu May 19 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.10-4
+- Related rhbz#706120
+- Catch-up build corresponding to RHEL-5 builds 0.10-4 -5 -6 and -7:
+- RHEL-5 0.10-4:
+  - 2.0 RC build 1
+  - BZs: 690261,693407,695263,695716,696637,696655,696698
+- RHEL-5 0.10-5:
+  - Intermediate build to address rpmdiff/multilib problems
+  - BZs: 689907
+  - Now sourcing the doxygen-generated HTML from distcvs
+- RHEL-5 0.10-6:
+  - 2.0 RC build 2
+  - BZs: 675921,681313,689907,698254,700822,701709,701777,701786,701804
+- RHEL-5 0.10-7:
+  - 2.0 RC build 3
+  - BZs: 693895,698721
+
+* Tue Apr 5 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.10-3
+- Related: rhbz#675821
+
+* Wed Mar 30 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.10-2
+- Related: rhbz#675821
+- Fix for missing uuid lib dependency
+- QMF v2 generation bug fix
+
+* Wed Mar 23 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.10-1
+- Related: rhbz#675821 - Rebase to upstream 0.10 rev 1083082 (store rev
+  remains 4446)
+- Removing svn rev no. from the package names
+
+* Wed Mar 9 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.9.1079953-1
+- Related: rhbz#675821 - Redo latest build because of windows build error.
+
+* Tue Mar 8 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.9.1078967-1
+- Related: rhbz#675821 - First build of 0-10 branch, but because final
+  numbering strategy is still undecided, the 0.9.x label persists for this
+  build. QMF has been removed entirely and placed into its own package, as
+  there were not only inconsistencies in the old packaging, but also name
+  clashes.
+
+* Fri Feb 23 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.9.1073306-1
+- Related: rhbz#675821 - Rebase qpid-cpp to 0.10 for snapshot 3
+  Note that the current qpid trunk is still in 0.9, but will branch onto
+  the 0.10 release branch soon. This is a test build only.
+
+* Fri Feb 7 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-13
+- Related: rhbz#659098 - Missing libqmf2.so.* in qmf package and
+  libqmf2.so in qmf-devel package
+
+* Fri Feb 4 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-12
+- Related: rhbz#659098 - QMFv2 API for C++
+- Related: rhbz#617260 - qmf agent crashes broker when queue limits exceeded
+- Related: rhbz#659100 - QMFv2 API for Python
+- Related: rhbz#662826 - Support for federated brokers in QMF
+  This build adds QMF v.2 to the previous MRG 1.3.2 RC2 build, and a
+  new python-qmf2 subpackage (rpm).
+
+* Fri Feb 4 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-11
+- Related: rhbz#631002 - Synchronize qpid-cpp build to MRG 1.3.
+  This build synchronizes with RHEL-{4,5} qpid-cpp-mrg-0.7.946106-28 (MRG 1.3.2 RC2).
+  Updated lib version numbers for RHEL 6.1.
+
+* Fri Jan 14 2011 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-10
+- Related: rhbz#631002 - Synchronize qpid-cpp build to MRG 1.3.
+  This build synchronizes with RHEL-{4,5} qpid-cpp-mrg-0.7.946106-26.
+
+* Mon Oct 4 2010 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-9
+- Related: rhbz#631002 - Synchronize qpid-cpp build to MRG 1.3.
+  This build synchronizes with RHEL-{4,5} qpid-cpp-mrg-0.7.946106-17.
+
+* Thu Sep 16 2010 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-8
+- Related: rhbz#631002 - Synchronize qpid-cpp build to MRG 1.3.
+  This build synchronizes with RHEL-{4,5} qpid-cpp-mrg-0.7.946106-15.
+
+* Tue Sep 14 2010 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-7
+- Related: rhbz#631002 - Synchronize qpid-cpp build to MRG 1.3.
+  This build synchronizes with RHEL-{4,5} qpid-cpp-mrg-0.7.946106-14.
+
+* Tue Sep 7 2010 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-6
+- Related: rhbz#631002 - Synchronize qpid-cpp build to MRG 1.3
+  Updated to latest 1.3 patches.
+  Removed MRG-core and MRG-non-core flags from spec file. Also removed the
+  core_release global, no longer needed as the el6mrg dist tag has gone.
 
 * Wed Jul 14 2010 Kim van der Riet<kim.vdriet@redhat.com> - 0.7.946106-5
 - Related: rhbz#609298 - ruby QMF bindings can't query agents
